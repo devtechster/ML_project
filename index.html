@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classifying Language on Audio</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: #f8f8f8;
+    }
+    img {
+      max-width: 100%;
+      height: 80%;
+      display: block;
+      margin: 0 auto;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+    }
+    h2 {
+      color: #555;
+    }
+    p {
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Language Identification Tool</h1>
+
+    <section>
+      <h2>Function</h2>
+      <p>The main function of our tool is to accurately identify the language spoken in an audio clip. This capability is foundational for applications requiring language-specific processing, such as automated transcription and real-time translation in multilingual environments.</p>
+    </section>
+
+    <section>
+      <h2>Need and Users</h2>
+      <p>By first classifying what language is being spoken, the appropriate subsequent model can be used for automated text generation and/or translation. For example, for real-time caption generation from a source that could come from multiple languages, such as YouTube videos, international conferences, and multilingual customer service.</p>
+    </section>
+
+    <section>
+      <h2>Existing Tools and Challenges</h2>
+      <p>Most existing tools for language classification focus on classifying from text instead of audio. Our tool seeks to bridge this gap by offering a more inclusive, accurate, and efficient solution. The difficulties come into play with the inherent noisiness of audio data.</p>
+    </section>
+
+    <section>
+      <h2>Building the Tool</h2>
+      <p>We will be using data obtained from <a href="https://huggingface.co/datasets/common_language">Hugging Face Common Language Dataset</a>. We want to compare several models to determine which performs best, including 1D CNN, FFT, Wav2vec, RNN autoencoder, audio-to-text, multitask training, and audio-to-image methods.</p>
+    </section>
+
+    <section>
+      <h2>Resources</h2>
+      <p>We will utilize resources available on Hugging Face, including datasets and pre-trained models contributed by the community.</p>
+    </section>
+
+    <section>
+      <h2>FFT + Feed forward NN</h2>
+      <img src="a.png" alt="a.png">
+      <img src="b.png" alt="b.png">
+      <img src="c.png" alt="c.png">
+      <img src="d.png" alt="d.png">
+      <p>
+          - We can encode a signal of any length by a vector of fixed length.<br>
+          - Our model is using a vector of power spectrum as an input to feed-forward NN, we use FFT as wave2vec.<br>
+          <strong>Model architecture:</strong><br>
+          FFT with 4096 modes<br>
+          Input layer: 2049 features<br>
+          Middle layer: size 512, activation ReLu<br>
+          Output: 45 classes, activation softmax<br>
+          <strong>Train accuracy:</strong> 86.11%<br>
+          <strong>Test accuracy:</strong> 3.34%
+      </p>
+  </section>
+  
+  <section>
+      <h2>Periodogram + CNN</h2>
+      <img src="e.png" alt="e.png">
+      <img src="f.png" alt="f.png">
+      <img src="g.png" alt="g.png">
+      <p>
+          Periodogram parameters:<br>
+          window_size = 512<br>
+          sampling_rate = 200<br>
+          stride=50<br>
+          min_freq=1<br>
+          max_freq=200<br>
+          standard_length=2000
+      </p>
+  </section>
+  
+  <section>
+      <h2>RNN</h2>
+      <img src="h.png" alt="h.png">
+      <img src="i.png" alt="i.png">
+  </section>
+  
+  <section>
+      <h2>Wave2vec + SoftMax</h2>
+      <img src="j.png" alt="j.png">
+      <p>
+          <strong>Input Features:</strong><br>
+          The input features are extracted from audio files using the Wave2Vec 2.0 model, which generates a sequence of high-level features representing the audio content.<br>
+          <strong>Model Architecture:</strong><br>
+          Step 1: Average Pooling: The sequence of features is averaged along the time dimension to obtain a fixed-size representation for each audio sample.<br>
+          Step 2: Linear Layer: This fixed-size representation is then passed through a linear layer. Each output neuron in this layer corresponds to a language class.<br>
+          Step 3: Softmax Activation: The outputs of the linear layer are passed through the softmax function, which converts them into a probability distribution across the language classes.<br>
+          <strong>Results:</strong><br>
+          A test accuracy of approximately 15%<br>
+          Feature Extraction with Wave2Vec 2.0:<br>
+          We employ the Wav2Vec2Processor and Wav2Vec2Model from the transformers library, pre-trained on the 960-hour LibriSpeech dataset, to convert raw audio into meaningful features.<br>
+          This model outputs the last hidden states which represent high-level features extracted from the audio.
+      </p>
+  </section>
+  
+  <section>
+      <h2>BertCNN</h2>
+      <img src="k.png" alt="k.png">
+      <p>
+          Given the highly heterogeneous training set, we tried an existing Bert-based model with deep classifiers (CNN in this case). The model was fed not by text but by phonetic posteriorgrams (PPGs). By recognizing phonetic patterns the model captures unique sounds of different languages.<br>
+          <strong>BERT provides capability of language understanding</strong><br>
+          <strong>PPG captures key features of different languages</strong><br>
+          <strong>CNN categorizes language based on learned features</strong><br>
+          <strong>Results:</strong><br>
+          <strong>Train:</strong><br>
+          Titan XP (2017)<br>
+          73 epochs (previous training terminated to reduce train set size)<br>
+          A slice of each audio clip to reduce training time<br>
+          Needs more than two weeks to finish 1000 epochs on entire training set<br>
+          <strong>Test</strong><br>
+          Precision: 58.3791<br>
+          Recall: 57.4417<br>
+          f1 score: 57.9104<br>
+          <strong>Discussion:</strong><br>
+          More epochs might be ideal<br>
+          Entire dataset will be ideal<br>
+          Other deep classifiers such as RCNN, LSTM
+      </p>
+  </section>
+  
+    <section>
+      <h2>Demonstration</h2>
+      <p>The tool's usefulness will be demonstrated through an interactive webpage allowing direct recording using computer or cellphone microphones, or file uploads.</p>
+    </section>
+  </div>
+</body>
+</html>
